@@ -1,4 +1,4 @@
-from common import *
+from get_z2.common import *
 
 
 def get_eigenv(k2d, k2d_meta, hamiltonian):
