@@ -1,4 +1,4 @@
-# z2_for_sisl
+# Calculates the z2 topological invariant
 
 This method implements the a topological z2 invariant, according to
 https://arxiv.org/abs/cond-mat/0611423.
