@@ -16,4 +16,5 @@ To have changes to the source reflected immediately:
 
     python3 setup.py develop --user
 Or use the following line:
-pip install git+
+
+    pip install git+https://github.com/0daniel0/get_z2.git
