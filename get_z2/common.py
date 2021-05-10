@@ -12,24 +12,37 @@ class Tile:
     which stores the vortex and link.
     """
 
-    def __init__(self, k1, k2, k3, k4):
-        self.pos = (k1 + k2 + k3 + k4) / 4
+    def __init__(self, k1, k2, k3, k4, n=4):
+        self.n = n  # number of nodes
         self.k = np.array([k1, k2, k3, k4], dtype=float)
         self.dx = k2[0] - k1[0]
         self.dy = k3[1] - k2[1]
-        self.u = np.array([0, 0, 0, 0], dtype=complex)
-        self.link = np.array([0, 0, 0, 0], dtype=float)
+        self.u = np.zeros(self.n, dtype=complex)
+        self.link = np.zeros(self.n, dtype=float)
         self.f = 0.0
+        self.top = False
+        self.bottom = False
+        self.left = False
+        self.right = False
+        if len(self.k[0]) == 3:
+            self.arrow = (self.k[0] + self.k[1] + self.k[2] + self.k[3]) / self.n + np.array([0, 0, 1])
+
+    @property
+    def pos(self):
+        return (self.k[0] + self.k[1] + self.k[2] + self.k[3]) / self.n
 
     @property
     def vortex(self):
         return (self.f - self.link.sum()) / (2 * np.pi)
 
     def _set_f(self):  # field strength
-        self.f += phase(self.u[0] * self.u[1] * self.u[2] * self.u[3])
+        exponent = 1
+        for u12 in self.u:
+            exponent *= u12
+        self.f += phase(exponent)
 
     def _set_link(self):
-        for i in range(4):
+        for i in range(self.n):
             self.link[i] += phase(self.u[i])
 
     def set_u_matrices(self, v, chern=False):
@@ -38,9 +51,9 @@ class Tile:
         numpy array v: the eigenvectors of the Hamiltonian
         """
         if not chern:  # then it a z2 calculator subroutine
-            for i in range(4):
+            for i in range(self.n):
                 #             v.T@v
-                vov = v[i].T.conj() @ v[(i + 1) % 4]  # size: occupied x occupied
+                vov = v[i].T.conj() @ v[(i + 1) % self.n]  # size: occupied x occupied
                 u12 = np.linalg.det(vov)
                 self.u[i] = u12  # u is a list of scalars
             self._set_link()
@@ -48,12 +61,13 @@ class Tile:
 
         else:  # it is a chern calculator subroutine
             for j in range(v[0].shape[1]):
-                for i in range(4):
-                    vov = v[i][:, j].T.conj() @ v[(i + 1) % 4][:, j]  # size: 1 x 1
+                for i in range(self.n):
+                    vov = v[i][:, j].T.conj() @ v[(i + 1) % self.n][:, j]  # size: 1 x 1
                     u12 = vov
                     self.u[i] = u12  # u is a list of scalars
                 self._set_link()
                 self._set_f()
+
 
 class CoverBZ:
     """
@@ -122,6 +136,40 @@ class CoverBZ:
         return data
 
 
+def get_eigenv(k2d, k2d_meta, hamiltonian):
+    """
+    Returns the proper eigenvectors of the hamiltonian
+    """
+    trim = [0, 0.5]
+    k = np.array(k2d) % 1
+    if not hamiltonian.chern:  # z2 case
+        if (0.5 < k[0]) and (k[1] in trim):  # if on the boundary
+            k[0] = 1 - k[0]  # 'mirroring' k[0]
+            v = get_v(k, k2d_meta, hamiltonian, tr=True)
+            return v
+        if (k[0] in trim) and (k[1] in trim):  # if in TRIM
+            v = get_v(k, k2d_meta, hamiltonian, tr=False)
+            v = self_tr(v, hamiltonian)
+            return v
+        else:
+            v = get_v(k, k2d_meta, hamiltonian, tr=False)  # if not on the boundary
+            return v
+    else:  # the chern case
+        v = get_v(k, k2d_meta, hamiltonian, tr=False)  # simple, not on the boundary
+        return v
+
+
+def set_tiles(tile, hamiltonian, k2d_meta):
+    """
+    Calculates everything in one square Tile
+    """
+    v_list = []
+    for k2d in tile.k:  # goes through the corners of tile
+        v_list.append(get_eigenv(k2d, k2d_meta, hamiltonian))  # gets eigenvectors of 4 H(k)
+    tile.set_u_matrices(v_list, chern=hamiltonian.chern)  # set U matrices, f and link
+    return tile
+
+
 class Hsystem:
     """
     container object for the hamiltonian,
@@ -132,59 +180,44 @@ class Hsystem:
     If hamiltonian is not sisl type, occuied should be provided.
     """
 
-    def __init__(self, hamiltonian, k2d_meta, tau=None, occupied=None,
-                 overlap=None, chern=False, *args, **kwargs):
+    def __init__(self, hamiltonian, source, k2d_meta, occupied=None,
+                 chern=False, *args, **kwargs):
         self.chern = chern
         self.args = args
         self.kwargs = kwargs
-        #  if hamiltonian is sisl object, then it creates the proper matrices
-        if isinstance(hamiltonian, si.physics.hamiltonian.Hamiltonian):
-            self.kwargs['format'] = 'array'
-            if occupied is None:
-                # Generates the number of occupied states
-                gamma_states = hamiltonian.eigenstate()
-                gamma_eigenvalues = gamma_states.eig
-                fermi = hamiltonian.fermi_level()
-                self.occupied = len((gamma_eigenvalues < fermi).nonzero()[0])
-            else:
-                self.occupied = occupied
+        self.kwargs['format'] = 'array'
 
-            self.hamiltonian = hamiltonian.Hk
-            self.overlap = hamiltonian.Sk
+        if source:
+            sile = si.get_sile(source)
+            hamiltonian = sile.read_hamiltonian()
 
+        if occupied is None:
+            # Generates the number of occupied states
+            gamma_states = hamiltonian.eigenstate()
+            gamma_eigenvalues = gamma_states.eig
+            fermi = hamiltonian.fermi_level()
+            self.occupied = len((gamma_eigenvalues < fermi).nonzero()[0])
         else:
-            # assumes everything is given by user
-            self.hamiltonian = hamiltonian
-            self.overlap = overlap
-            self.tau = tau
             self.occupied = occupied
-        if tau is None:
-            k = setk([0, 0], k2d_meta)
-            size = len(self.hamiltonian(k=k, *self.args, **self.kwargs))
-            self.tau = make_tau(size)
-        else:
-            self.tau = tau
 
-        self.non_orthogonal = False
-        if self.overlap is not None:
-            self.non_orthogonal = True
-        if self.occupied is None:
-            print("Argument occupied is None")
-            raise ValueError
+        self.hamiltonian = hamiltonian.Hk
+        self.overlap = hamiltonian.Sk
+        k = setk([0, 0], k2d_meta)
+        size = len(self.hamiltonian(k=k, *self.args, **self.kwargs))
+        self.tau = make_tau(size)
+        self.non_orthogonal = True
 
 
-class Position_meta:
+class PositionMeta:
     """
-    Data container for storing the elevation of the plane,
+    Data container for storing the elevation of the tiles,
     k_order, which defines the
-    "orientation" of the plane eg.: "xy" and
-    is3d: flag, True if the system is 3d
+    "orientation" of the tiles eg.: "xy"
     """
 
-    def __init__(self, k_order, elevation, is3d):
+    def __init__(self, k_order, elevation):
         self.k_order = k_order
         self.elevation = elevation
-        self.is3d = is3d  # flag
 
 
 def lowdin(Hk, Sk):
@@ -203,7 +236,7 @@ def lowdin(Hk, Sk):
     return h
 
 
-def get_v(k2d, k2d_meta: Position_meta, hamiltonian, tr=False):
+def get_v(k2d, k2d_meta: PositionMeta, hamiltonian, tr=False):
     """
     Bool tr: if True we apply the time reverse
     operator Tau to the eigenvectors of H(k)
@@ -212,7 +245,7 @@ def get_v(k2d, k2d_meta: Position_meta, hamiltonian, tr=False):
     Position_2d_meta k2d: container object for 2d momenta
     """
 
-    shift = 0.5  # this line is not needed
+    shift = 0.0  # this line is not needed
     k = setk(k2d - shift, k2d_meta)  # creates k3d
     if hamiltonian.non_orthogonal:
         Hk = hamiltonian.hamiltonian(k=k, *hamiltonian.args, **hamiltonian.kwargs)
@@ -258,8 +291,8 @@ def self_tr(v, hamiltonian):
 
 def set_k_order(plane):
     """
-    Sets the proper order of px, py, pz according to the plane
-    str plane: In which plane the calculation is done e.g.: 'xy', 'zx'
+    Sets the proper order of px, py, pz according to the tiles
+    str tiles: In which tiles the calculation is done e.g.: 'xy', 'zx'
     return: array with 3 element, which contains the correct order .
     """
 
@@ -275,19 +308,13 @@ def set_k_order(plane):
 
 def setk(k2d, k2d_meta):
     """
-    Finds out the k values from plane and elevation.
+    Finds out the k values from tiles and elevation.
     """
     k_order = k2d_meta.k_order
     elevation = k2d_meta.elevation
 
-    if k2d_meta.is3d:  # if k is 3d
-        k3d = np.array([0, 0, 0], dtype=float)
-        k3d[k_order[0]] = k2d[0]
-        k3d[k_order[1]] = k2d[1]
-        k3d[k_order[2]] = elevation
-    else:  # if k is 2d
-        k3d = np.array([0, 0], dtype=float)
-        k3d[k_order[0]] = k2d[0]
-        k3d[k_order[1]] = k2d[1]
+    k3d = np.array([0, 0, 0], dtype=float)
+    k3d[k_order[0]] = k2d[0]
+    k3d[k_order[1]] = k2d[1]
+    k3d[k_order[2]] = elevation
     return k3d
-
