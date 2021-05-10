@@ -5,7 +5,7 @@ https://arxiv.org/abs/cond-mat/0611423.
 
 # Installation
 
-Requires cmath, sisl, matplotlib and numpy.
+Requires sisl.
 
 Get setuptools and install using setup.py:
 
