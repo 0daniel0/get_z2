@@ -15,3 +15,5 @@ Get setuptools and install using setup.py:
 To have changes to the source reflected immediately:
 
     python3 setup.py develop --user
+Or use the following line:
+pip install git+
