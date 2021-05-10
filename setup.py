@@ -3,4 +3,4 @@
 
 from setuptools import setup, find_packages
 
-setup(name='get_z2', packages=find_packages())
+setup(name='sisld', packages=find_packages())
