@@ -4,7 +4,7 @@ according to https://arxiv.org/abs/cond-mat/0611423.
 Use the getz2 function to calculate the Z2 invariant or Chern number along a tiles.
 """
 
-from shapes import *
+from .shapes import *
 from tqdm.autonotebook import tqdm as tqdm
 
 
