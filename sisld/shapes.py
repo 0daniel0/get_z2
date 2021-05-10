@@ -10,7 +10,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-from common import *
+from .common import *
 
 
 def rotate(vector, degree, axis='x'):
