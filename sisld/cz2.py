@@ -69,14 +69,3 @@ def getz2(h=None, source=None, shape=None, elevation=0, grid=8, plane="xy",
     else:
         bz.z2 = ((bz.link - bz.f) / (2 * np.pi)) % 2
     return bz
-
-
-# example code
-s0 = "../6/test.fdf"
-s1 = "../daninak/bismuth/Bi.fdf"
-
-s = Sphere(6)
-s.deform(resize, 0.5)
-res = getz2(source=s1, shape=s, chern=False, eta=True)
-print(res.chern)
-res.plot()
