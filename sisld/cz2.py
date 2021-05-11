@@ -4,8 +4,13 @@ according to https://arxiv.org/abs/cond-mat/0611423.
 Use the getz2 function to calculate the Z2 invariant or Chern number along a tiles.
 """
 
-from .shapes import *
+from shapes import *
+import warnings
+# ignores tqdm import warning
+warnings.filterwarnings("ignore")
 from tqdm.autonotebook import tqdm as tqdm
+# ignors sisl fermi_level() overflow warining
+warnings.filterwarnings("ignore", message="overflow encountered in exp")
 
 
 # main function
