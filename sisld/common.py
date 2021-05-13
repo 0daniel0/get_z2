@@ -133,6 +133,7 @@ class CoverBZ:
         ax.set_xlim(self.x.min(), self.x.max())
         ax.set_ylim(self.y.min(), self.y.max())
         plt.show()
+        return fig, ax
 
 
 def get_eigenv(k2d, k2d_meta, hamiltonian):
