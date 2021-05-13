@@ -257,6 +257,7 @@ class FreeShape:
         ax.set_ylabel("$k_y$")
         ax.set_zlabel("$k_z$")
         plt.show()
+        return fig, ax
 
 
 class Sphere(FreeShape):
