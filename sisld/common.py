@@ -195,8 +195,7 @@ class Hsystem:
             # Generates the number of occupied states
             gamma_states = hamiltonian.eigenstate()
             gamma_eigenvalues = gamma_states.eig
-            fermi = hamiltonian.fermi_level()
-            self.occupied = len((gamma_eigenvalues < fermi).nonzero()[0])
+            self.occupied = len((gamma_eigenvalues < 0).nonzero()[0])
         else:
             self.occupied = occupied
 
