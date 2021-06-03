@@ -190,20 +190,22 @@ class Hsystem:
         if type(source) == str:
             sile = si.get_sile(source)
             hamiltonian = sile.read_hamiltonian()
-        
+            
+        self.hamiltonian = hamiltonian.Hk
+            
+        if occupied is None:
+            # Generates the number of occupied states
+            gamma_states = hamiltonian.eigenstate()
+            gamma_eigenvalues = gamma_states.eig
+            mask = gamma_eigenvalues < 0
+            self.occupied = len(gamma_eigenvalues[mask])
+        else:
+            self.occupied = occupied
+
         self.non_orthogonal = True
         if self.non_orthogonal:
-            if occupied is None:
-                # Generates the number of occupied states
-                gamma_states = hamiltonian.eigenstate()
-                gamma_eigenvalues = gamma_states.eig
-                mask = gamma_eigenvalues < 0
-                self.occupied = len(gamma_eigenvalues[mask])
-            else:
-                self.occupied = occupied
-
-            self.hamiltonian = hamiltonian.Hk
             self.overlap = hamiltonian.Sk
+        if not self.chern:
             k = setk([0, 0], k2d_meta)
             size = len(self.hamiltonian(k=k, *self.args, **self.kwargs))
             self.tau = make_tau(size)
