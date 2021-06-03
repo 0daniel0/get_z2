@@ -11,14 +11,12 @@ warnings.filterwarnings("ignore")
 from tqdm.autonotebook import tqdm as tqdm
 # ignors sisl fermi_level() overflow warining
 warnings.filterwarnings("ignore", message="overflow encountered in exp")
-from functools import wraps
 
 
 def alias(f, *args, **kwargs):
     """
     decorator which helps using non-sisl hamiltonians
     """
-    @wraps(f)
     class h():
         def __init__(self, f):
             self.H = f
