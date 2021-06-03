@@ -9,4 +9,5 @@ https://arxiv.org/abs/cond-mat/0611423.
     
     
 to remove the package run
-pip uninstall sisld
+
+    pip uninstall sisld
