@@ -18,7 +18,7 @@ def alias(f, *args, **kwargs):
     """
     decorator which helps using non-sisl hamiltonians
     """
-    @wraps(func)
+    @wraps(f)
     class h():
         def __init__(self, f):
             self.H = f
