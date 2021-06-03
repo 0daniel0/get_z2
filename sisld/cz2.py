@@ -13,6 +13,40 @@ from tqdm.autonotebook import tqdm as tqdm
 warnings.filterwarnings("ignore", message="overflow encountered in exp")
 
 
+def alias(f, *args, **kwargs):
+    """
+    decorator which helps using non-sisl hamiltonians
+    """
+    class h():
+        def __init__(self, f):
+            self.H = f
+            
+        def Hk(self, *args, **kwargs):
+            if kwargs.get("format"):
+                del kwargs["format"]
+            return self.H(*args, **kwargs)
+        
+        def Sk(self, *args, **kwargs):
+            return np.eye(len(self.Hk([0, 0, 0])))
+        
+        def eigenstate(self):
+            eig = np.linalg.eigvalsh(self.Hk(k=[0, 0, 0]))
+            
+            class eigvals():
+                def __init__(self, eig):
+                    self.eig = eig
+                def eig(self):
+                    return self.eig
+            return eigvals(eig)
+        
+        def fermi_level(self):
+            return 0
+    return h(f)
+
+
+
+
+
 # main function
 def getz2(h=None, source=None, shape=None, elevation=0, grid=8, plane="xy",
           chern=False, nbands=None, eta=False):
