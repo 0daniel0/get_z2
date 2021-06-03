@@ -187,26 +187,26 @@ class Hsystem:
         self.kwargs = kwargs
         self.kwargs['format'] = 'array'
 
-        if source:
+        if type(source) == str:
             sile = si.get_sile(source)
             hamiltonian = sile.read_hamiltonian()
-
-        if occupied is None:
-            # Generates the number of occupied states
-            gamma_states = hamiltonian.eigenstate()
-            gamma_eigenvalues = gamma_states.eig
-            mask = gamma_eigenvalues < 0
-            self.occupied = len(gamma_eigenvalues[mask])
-        else:
-            self.occupied = occupied
-
-        self.hamiltonian = hamiltonian.Hk
-        k = setk([0, 0], k2d_meta)
-
+        
         self.non_orthogonal = True
-        self.overlap = hamiltonian.Sk
-        size = len(self.hamiltonian(k=k, *self.args, **self.kwargs))
-        self.tau = make_tau(size)
+        if self.non_orthogonal:
+            if occupied is None:
+                # Generates the number of occupied states
+                gamma_states = hamiltonian.eigenstate()
+                gamma_eigenvalues = gamma_states.eig
+                mask = gamma_eigenvalues < 0
+                self.occupied = len(gamma_eigenvalues[mask])
+            else:
+                self.occupied = occupied
+
+            self.hamiltonian = hamiltonian.Hk
+            self.overlap = hamiltonian.Sk
+            k = setk([0, 0], k2d_meta)
+            size = len(self.hamiltonian(k=k, *self.args, **self.kwargs))
+            self.tau = make_tau(size)
 
 
 class PositionMeta:
