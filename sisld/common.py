@@ -201,11 +201,12 @@ class Hsystem:
             self.occupied = occupied
 
         self.hamiltonian = hamiltonian.Hk
-        self.overlap = hamiltonian.Sk
         k = setk([0, 0], k2d_meta)
+
+        self.non_orthogonal = True
+        self.overlap = hamiltonian.Sk
         size = len(self.hamiltonian(k=k, *self.args, **self.kwargs))
         self.tau = make_tau(size)
-        self.non_orthogonal = True
 
 
 class PositionMeta:
