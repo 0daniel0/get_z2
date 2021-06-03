@@ -44,9 +44,6 @@ def alias(f, *args, **kwargs):
     return h(f)
 
 
-
-
-
 # main function
 def getz2(h=None, source=None, shape=None, elevation=0, grid=8, plane="xy",
           chern=False, nbands=None, eta=False):
