@@ -5,39 +5,6 @@ from cmath import phase
 import sisl as si
 
 
-def alias(f, *args, **kwargs):
-    """
-    decorator which helps using non-sisl hamiltonians
-    """
-    class h():
-        def __init__(self, f):
-            self.H = f
-            
-        def Hk(self, *args, **kwargs):
-            if kwargs.get("format"):
-                del kwargs["format"]
-            return self.H(*args, **kwargs)
-        
-        def Sk(self, *args, **kwargs):
-            return np.eye(len(self.Hk([0, 0, 0])))
-        
-        def eigenstate(self):
-            eig = np.linalg.eigvalsh(self.Hk(k=[0, 0, 0]))
-            
-            class eigvals():
-                def __init__(self, eig):
-                    self.eig = eig
-                def eig(self):
-                    return self.eig
-            return eigvals(eig)
-        
-        def fermi_level(self):
-            return 0
-            
-            
-    return h(f)
-
-
 class Tile:
     """
     Tile(k1, k2, k3, k4)
