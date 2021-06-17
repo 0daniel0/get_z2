@@ -1,7 +1,7 @@
 # Calculates the z2 topological invariant
 
 This method implements the calculation of the topological z2 invariant by L Fu and CL Kane, according to
-https://arxiv.org/abs/cond-mat/0611423.
+https://journals.aps.org/prb/abstract/10.1103/PhysRevB.74.195312.
 
 # Installation
 
