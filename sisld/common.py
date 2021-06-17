@@ -132,7 +132,6 @@ class CoverBZ:
         ax.set_aspect("equal")
         ax.set_xlim(self.x.min(), self.x.max())
         ax.set_ylim(self.y.min(), self.y.max())
-        plt.show()
         return fig, ax
 
 
