@@ -256,7 +256,6 @@ class FreeShape:
         ax.set_xlabel("$k_x$")
         ax.set_ylabel("$k_y$")
         ax.set_zlabel("$k_z$")
-        plt.show()
         return fig, ax
 
 
