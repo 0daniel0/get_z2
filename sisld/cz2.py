@@ -83,7 +83,7 @@ def getz2(h=None, source=None, shape=None, elevation=0, grid=8, plane="xy",
         elevation = 0
     k_order = set_k_order(plane)  # k_order[0]='x' and k_order[1]='y'
     k2d_meta = PositionMeta(k_order, elevation)
-    hamiltonian = Hsystem(hamiltonian=h, source=source, k2d_meta=k2d_meta, nbands, chern=chern, occupied=nbands)
+    hamiltonian = Hsystem(hamiltonian=h, source=source, k2d_meta=k2d_meta, chern=chern, occupied=nbands)
     k_upper = 0.5
     k_lower = 0
     if eta:
