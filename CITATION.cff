@@ -1,0 +1,15 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: sisld
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Dániel
+    family-names: Nagy
+    email: daniel.nagy@ttk.elte.hu
+    orcid: 'https://orcid.org/0000-0002-3670-1162'
+    affiliation: Eötvös Loránd Tudományegyetem
